@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+    <title>MP3 to Apple Music</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+
+    <div class="container">
+        <h1>MP3 to Apple Music</h1>
+        <div class="instructions">
+            <p>1. Click the button below to open your Downloads folder</p>
+            <p>2. Select your MP3 file</p>
+            <p>3. Open with iTunes/Apple Music</p>
+            <p>4. The file will be automatically added to iTunes</p>
+            <p>5. Click on the song in iTunes and click "Add to iCloud Music Library"</p>
+        </div>
+        <button onclick="openDownloads()" class="import-button">Open Downloads Folder</button>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 
+                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        html.setAttribute('data-theme', savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Downloads Function
+        async function openDownloads() {
+            const statusDiv = document.getElementById('status');
+            try {
+                const response = await fetch('/open-downloads', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    statusDiv.textContent = 'Downloads folder opened successfully';
+                    statusDiv.className = 'status success';
+                } else {
+                    statusDiv.textContent = data.message || 'Failed to open Downloads folder';
+                    statusDiv.className = 'status error';
+                }
+            } catch (error) {
+                statusDiv.textContent = 'An error occurred. Please try again.';
+                statusDiv.className = 'status error';
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
